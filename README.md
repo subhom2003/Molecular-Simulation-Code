@@ -445,8 +445,4 @@ Log file: `output_dir/simulation.log`. Increase verbosity with
 8. A. Rahman, *Phys. Rev.* **136**, A405 (1964).
 9. H. Flyvbjerg & H. G. Petersen, *J. Chem. Phys.* **91**, 461 (1989).
 
----
 
-## 15. License
-
-MIT. Contributions welcome — please keep `python -m pytest tests/ -q` green.
