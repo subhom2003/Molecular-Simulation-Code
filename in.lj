@@ -1,0 +1,14 @@
+units         lj
+lattice       fcc 0.8442
+create_atoms  1 box
+pair_style    lj/cut 2.5
+pair_coeff    1 1 1.0 1.0
+neighbor      0.3 bin
+velocity      all create 0.8 42
+fix           1 all nve
+fix           2 all temp/rescale 100 0.8 0.8 0.1 1.0
+thermo        10
+dump          1 all xyz 200 output/trajectory.xyz
+run           10000
+unfix         2
+run           20000

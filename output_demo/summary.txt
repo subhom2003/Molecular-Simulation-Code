@@ -1,0 +1,60 @@
+============================================================================
+ LJ-MD -- SIMULATION VALIDATION REPORT
+============================================================================
+======================================================================
+ LENNARD-JONES MD SIMULATION -- CONFIGURATION SUMMARY
+======================================================================
+  System          N= 108  rho*=0.8442  T*=0.7220
+  Box             L*=5.0388 sigma  V*=127.9318 sigma^3
+  Force field     r_c*=2.5 sigma  shift=True
+  Tail corr.      u_tail/N=-0.4520 eps  P_tail=-0.7621 eps/sigma^3
+  Neighbor list   style=verlet  r_skin=0.3 sigma  r_list=2.8000
+  Integration     dt*=0.005  n_steps=20,000
+  Equilibration   n_equil=5,000  thermostat='rescale'
+  Production      NVE (no thermostat), last 0 steps of equil switch off
+  Sampling        every 10 steps
+  RDF             200 bins, start at step 5000
+  MSD/VACF        starts at step 5000
+  Output          dir='output_bench_new'  dpi=150
+  RNG seed        42
+  Strict mode     False
+======================================================================
+  Reference model: full LJ (with tails)
+
+ NOTE: rho*/T* are near the solid-liquid coexistence band and
+ N is small: expect coexistence-like averages (intermediate P,
+ depressed g(r) peaks) unless the melt-anneal-NVE protocol from
+ README.txt section 7 was followed and stayed liquid.
+
+
+
+ Production Averages (block-averaged with Flyvbjerg-Petersen)
+----------------------------------------------------------------------------
+  T*              0.6355 +- 0.0005  |  literature 0.7220 (Verlet 1967 (input target)) | error 12.0%
+  P*              -0.6880 +- 0.0036  |  literature 1.7310 (Allen & Tildesley 2017 (full LJ, tail-corrected)) | error 139.7%
+  E/N             -4.8387 +- 0.0000  |  literature -6.2360 (Allen & Tildesley 2017 (full LJ, tail-corrected)) | error 22.4%
+  g(r) peak r*    1.1022  | g(r) peak height = 3.124
+  D* (Einstein)   0.0225  |  literature 0.0180 (Rahman 1964 (full LJ, approximate)) | error 24.8%
+  D* (Green-Kubo) 0.0483  |  literature 0.0180 (Rahman 1964 (full LJ, approximate)) | error 168.2%
+
+  !! Production T*=0.6355 deviates -12.0% from target 0.7220 - equilibration likely incomplete
+     (structure still relaxing during production; lengthen the anneal stage or check the thermostat).
+
+
+ Energy Conservation
+----------------------------------------------------------------------------
+  |dE/E0|  1.021e-04  - OK
+
+
+ Autocorrelation Times
+----------------------------------------------------------------------------
+  tau(       T*) =  505.48 steps (~ 2.527 tau)
+  tau(       P*) =  619.56 steps (~ 3.098 tau)
+  tau(  E_total) = 1231.85 steps (~ 6.159 tau)
+
+
+ Run Stats
+----------------------------------------------------------------------------
+  Wall time          16.63 s
+  Neighbor list builds: 1770
+============================================================================

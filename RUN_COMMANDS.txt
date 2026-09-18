@@ -1,0 +1,125 @@
+================================================================================
+                          lj-md  --  COMMAND REFERENCE
+================================================================================
+Run everything from the package root:
+
+    cd ~/subhom/LJ_MD_CODE_sep/lj_md_package
+
+--------------------------------------------------------------------------------
+1. INSTALL
+--------------------------------------------------------------------------------
+    pip install -e .[plot]          # engine + plotting extras
+    lj-md --version                 # should print 0.2.0
+    lj-md --help                    # CLI options
+
+--------------------------------------------------------------------------------
+2. TESTS  (33 tests, ~30 s)
+--------------------------------------------------------------------------------
+    python -m pytest tests/ -q                    # full suite
+    python -m pytest tests/test_engine.py -q      # engine regressions only
+    python -m pytest tests/test_pair_signs.py -q  # force-sign FD checks
+    python -m pytest tests/test_thermostats.py -q # BAOAB / Nose-Hoover physics
+
+--------------------------------------------------------------------------------
+3. CLI BENCHMARK  (Verlet 1967 point: rho*=0.8442, T*=0.722, N=108)
+--------------------------------------------------------------------------------
+    lj-md --benchmark --steps 20000 --equil 5000 --output output_bench_new
+
+    # skip plots (faster):
+    lj-md --benchmark --steps 20000 --equil 5000 --output output_bench_new --no-plots
+
+Outputs in output_bench_new/: thermo.csv, energies.csv, trajectory.xyz,
+rdf.csv, msd.csv, vacf.csv, sk.csv, summary.txt, plus PNGs.
+The summary.txt flags the coexistence-near state point on purpose
+(see REVIEW.md, P2) - that is honest physics, not a failure.
+
+--------------------------------------------------------------------------------
+4. INPUT SCRIPT (LAMMPS-style)
+--------------------------------------------------------------------------------
+    lj-md in.lj --output out_script
+
+Note: fix temp/rescale uses LAMMPS argument order now:
+    fix 2 all temp/rescale N Tstart Tstop window fraction
+(window is in ABSOLUTE temperature units), e.g.
+    fix 2 all temp/rescale 100 0.722 0.722 0.1 1.0
+
+--------------------------------------------------------------------------------
+5. EXAMPLES
+--------------------------------------------------------------------------------
+    python examples/run_lj_liquid.py --run benchmark       # melt-anneal-NVE
+    python examples/run_lj_liquid.py --run supercritical   # rho*=0.3, T*=1.5
+    python examples/run_lj_liquid.py --run scan            # T scan at rho*=0.8442
+
+--------------------------------------------------------------------------------
+6. PYTHON API (plain rescale-equilibrated run; integrates properly now)
+--------------------------------------------------------------------------------
+    python - <<'EOF'
+    from lj_md_package import SimConfig, Simulation
+
+    cfg = SimConfig(N=108, rho_star=0.8442, T_star=0.722,
+                    n_steps=20000, n_equil=5000,
+                    output_dir="output/api_test")
+    sim = Simulation.from_config(cfg)
+    sim.run(cfg.n_equil)                  # equilibration (rescale thermostat)
+    sim.remove_fix("thermostat")          # switch the thermostat off
+    sim.run(cfg.n_steps - cfg.n_equil)    # NVE production
+    sim.finish(0.0)
+    EOF
+
+--------------------------------------------------------------------------------
+7. MELT-ANNEAL-NVE  (recommended at rho*=0.8442, T*=0.722 - the FCC start does
+   NOT melt on its own; see REVIEW.md / README.txt section 7)
+--------------------------------------------------------------------------------
+    python - <<'EOF'
+    from lj_md_package import SimConfig, Simulation, FixNVE, FixLangevin
+
+    cfg = SimConfig(N=108, rho_star=0.8442, T_star=0.722,
+                    n_steps=70000, n_equil=20000, thermostat_type="none",
+                    output_dir="output/melt_anneal")
+    sim = Simulation.from_config(cfg)
+    sim.remove_fix("nve")                          # Langevin integrates itself
+
+    lang = FixLangevin("thermostat", "all", T_target=2.0, gamma=1.0, seed=42)
+    sim.add_fix(lang)
+    sim.run(5000)                                  # melt at T=2.0
+    lang.T_target = 0.722                          # anneal to target
+    sim.run(15000)
+    sim.remove_fix("thermostat")
+    sim.add_fix(FixNVE("nve", "all", sim.integrator))
+    sim.run(50000)                                 # NVE production
+    sim.finish(0.0)
+    EOF
+
+--------------------------------------------------------------------------------
+8. A CLEAN LIQUID POINT (rho*=0.8, T*=1.0 - safely away from coexistence;
+   good for sanity-checking the whole pipeline against the EOS)
+--------------------------------------------------------------------------------
+    python - <<'EOF'
+    from lj_md_package import SimConfig, Simulation, FixNVE
+
+    cfg = SimConfig(N=108, rho_star=0.8, T_star=1.0,
+                    n_steps=20000, n_equil=5000, thermostat_type="langevin",
+                    output_dir="output/liquid_check")
+    sim = Simulation.from_config(cfg)
+    sim.run(cfg.n_equil)                           # BAOAB Langevin equilibration
+    sim.remove_fix("thermostat")
+    sim.add_fix(FixNVE("nve", "all", sim.integrator))
+    sim.run(cfg.n_steps - cfg.n_equil)             # NVE production
+    sim.finish(0.0)
+    EOF
+
+--------------------------------------------------------------------------------
+9. NOTES
+--------------------------------------------------------------------------------
+- Old outputs output_bench/ and output_small/ are from the pre-fix code
+  (output_small also had the nc=2 cell-list bug); regenerate with 3/4 above.
+- The default benchmark point (0.8442, 0.722, N=108) sits on the LJTS
+  solid-liquid coexistence band: expect the summary caveat and intermediate
+  P*/g(r); for liquid EOS agreement use section 7 or larger N (864+).
+- Reference tables auto-match the tail setting:
+    tail ON  -> full-LJ refs  (E/N=-6.236, P*=1.731)
+    tail OFF -> LJTS refs     (E/N=-4.846, P*=1.138)
+- Berendsen barostat (equilibration):  fix ID all press/berendsen P tau_P beta
+  e.g. in an input script:  fix 3 all press/berendsen 1.731 5.0 0.1
+
+================================================================================
