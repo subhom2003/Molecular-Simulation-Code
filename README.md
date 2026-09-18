@@ -5,8 +5,8 @@ for monatomic **Lennard-Jones (LJ) fluids**, with a LAMMPS-style input-script
 interface, a Pythonic builder API, and built-in validation against literature
 reference data.
 
-> ⚠️ This is an educational/research-grade engine, not a drop-in replacement
-> for LAMMPS. It favors transparency and correctness over raw speed.
+> ⚠️ This is a research-grade engine, not a drop-in replacement
+> for LAMMPS. 
 
 ---
 
