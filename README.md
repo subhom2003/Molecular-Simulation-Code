@@ -1,12 +1,11 @@
-# lj-md — A LAMMPS-style Lennard-Jones Molecular Dynamics Engine
+# lj-md — A Simple Lennard-Jones Molecular Dynamics Engine
 
-A small, dependency-light (NumPy-only), pure-Python molecular dynamics engine
+A small, simple (NumPy-only), pure-Python molecular dynamics engine
 for monatomic **Lennard-Jones (LJ) fluids**, with a LAMMPS-style input-script
 interface, a Pythonic builder API, and built-in validation against literature
 reference data.
 
-> ⚠️ This is a research-grade engine, not a drop-in replacement
-> for LAMMPS. 
+> ⚠️ This is a research-grade MD simulation engine. 
 
 ---
 
