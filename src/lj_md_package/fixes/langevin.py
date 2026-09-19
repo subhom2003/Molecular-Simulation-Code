@@ -23,6 +23,8 @@ gamma=1, dt=0.005).  At gamma -> 0 this reduces to velocity Verlet.
 This fix REPLACES FixNVE (it performs the full integration).  Do not use
 both at once - ``Simulation.run`` will refuse.
 
+#আমার প্রিয় চারু 
+
 References
 ----------
 - B. Leimkuhler & C. Matthews, J. Chem. Phys. 138, 174102 (2013) (BAOAB).
